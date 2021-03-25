@@ -1,0 +1,226 @@
+@name [A] - Speeder Clavier
+@inputs [Typing1 Typing2]:string [Player1 Player2]:entity
+@outputs [Word1 Word2]:string [Reset1 Reset2] GameMode Score1 Score2
+@persist Score1 Score2
+@persist GameMode
+@persist Word:array
+@trigger 
+
+if(first() | dupefinished()){
+    GameMode = 0
+    Word1 = Word2 = "Pour jouer utilisez le clavier"
+    Typing1 = ""
+    Typing2 = ""
+    
+    Word[1, string] = "carotte"
+    Word[2, string] = "bonjour"
+    Word[3, string] = "flutte"
+    Word[4, string] = "ogre"
+    Word[5, string] = "mange"
+    Word[6, string] = "tropical"
+    Word[7, string] = "lumiere"
+    Word[8, string] = "eau"
+    Word[9, string] = "claque"
+    Word[10, string] = "musique"
+    
+    Word[11, string] = "trop"
+    Word[12, string] = "rapide"
+    Word[13, string] = "verre"
+    Word[14, string] = "nuage"
+    Word[15, string] = "la"
+    Word[16, string] = "le"
+    Word[17, string] = "de"
+    Word[18, string] = "un"
+    Word[19, string] = "fenetre"
+    Word[20, string] = "meuble"
+    
+    Word[21, string] = "tasse"
+    Word[22, string] = "elf"
+    Word[23, string] = "image"
+    Word[24, string] = "neige"
+    Word[25, string] = "pluie"
+    Word[26, string] = "soleil"
+    Word[27, string] = "terre"
+    Word[28, string] = "tarte"
+    Word[29, string] = "nager"
+    Word[30, string] = "blague"
+    
+    Word[31, string] = "baguette"
+    Word[32, string] = "pain"
+    Word[33, string] = "fantome"
+    Word[34, string] = "vers"
+    Word[35, string] = "chat"
+    Word[36, string] = "chien"
+    Word[37, string] = "cache"
+    Word[38, string] = "brouillard"
+    Word[39, string] = "couteau"
+    Word[40, string] = "plus"
+    
+    Word[41, string] = "oslo"
+    Word[42, string] = "paris"
+    Word[43, string] = "berlin"
+    Word[44, string] = "dublin"
+    Word[45, string] = "tokyo"
+    Word[46, string] = "bagdad"
+    Word[47, string] = "madrid"
+    Word[48, string] = "pekin"
+    Word[49, string] = "brasilia"
+    Word[50, string] = "sucre"
+    
+    Word[51, string] = "canon"
+    Word[52, string] = "mortier"
+    Word[53, string] = "avion"
+    Word[54, string] = "voiture"
+    Word[55, string] = "tank"
+    Word[56, string] = "tour"
+    Word[57, string] = "missile"
+    Word[58, string] = "poudre"
+    Word[59, string] = "pour"
+    Word[60, string] = "feu"
+    
+    Word[71, string] = "rouge"
+    Word[72, string] = "violet"
+    Word[73, string] = "bleu"
+    Word[74, string] = "noir"
+    Word[75, string] = "blanc"
+    Word[76, string] = "vert"
+    Word[77, string] = "jaune"
+    Word[78, string] = "beige"
+    Word[79, string] = "gris"
+    Word[80, string] = "orange"
+    
+    Word[81, string] = "tigre"
+    Word[82, string] = "loup"
+    Word[83, string] = "baleine"
+    Word[84, string] = "saumon"
+    Word[85, string] = "mouche"
+    Word[86, string] = "lion"
+    Word[87, string] = "serpent"
+    Word[88, string] = "mouton"
+    Word[89, string] = "chevre"
+    Word[90, string] = "vache"
+    
+    Word[91, string] = "pierre"
+    Word[92, string] = "metal"
+    Word[93, string] = "argent"
+    Word[94, string] = "or"
+    Word[95, string] = "plastique"
+    Word[96, string] = "huile"
+    Word[97, string] = "carbon"
+    Word[98, string] = "chimie"
+    Word[99, string] = "physique"
+    Word[90, string] = "calcul"
+}
+
+function string chooseNewWord(){
+    local Random = floor(random(1,100))
+    
+    return Word[Random, string]
+}
+
+if((changed(Player1) || changed(Player2))  && Player1:isPlayer()  && Player2:isPlayer()   && GameMode == 0){
+    Reset1 = Reset2 = 1
+    Score1 = Score2 = 0
+    GameMode = 1
+    Word1 = Word2 = "3"
+    
+    entity():soundPlay(1,0, "ambient/misc/windchime2.wav")
+    soundPitch(1, 100)
+    timer("1",1100)
+}
+if(GameMode == 1){
+    
+    if(clk("1")){
+        Word1 = Word2 = "2"
+        
+        entity():soundPlay(1,0, "ambient/misc/windchime2.wav")
+        soundPitch(1, 120)
+        timer("2",1000)
+    }
+    if(clk("2")){
+        Word1 = Word2 = "1"
+        
+        entity():soundPlay(1,0, "ambient/misc/windchime2.wav")
+        soundPitch(1, 140)
+        timer("3",1000)
+    }    
+    if(clk("3")){
+        Word1 = Word2 = ""
+        
+        entity():soundPlay(1,0, "ambient/misc/windchime2.wav")
+        soundPitch(1, 160)
+        timer("4",10)
+    }    
+    if(clk("4")){
+        GameMode = 2
+        Reset1 = Reset2 = 0
+        Word1 = Word2 = ""
+        
+        timer("stop", 60 * 1000)
+        entity():soundPlay(5,0, "ambient/music/country_rock_am_radio_loop.wav")
+    }
+    
+}
+
+if(GameMode == 2){
+    if(Word1 == ""){
+        Reset1 = 0
+        Word1 = chooseNewWord()
+    }
+    if(Word2 == ""){
+        Reset2 = 0
+        Word2 = chooseNewWord()
+    }
+    
+    if(Typing1 == Word1){
+        Reset1 = 1
+        Word1 = ""
+        Score1 += 1
+        entity():soundPlay(2,0, "buttons/bell1.wav")
+        soundPitch(2, 110)
+    }
+    
+    if(Typing2 == Word2){
+        Reset2 = 1
+        Word2 = ""
+        Score2 += 1
+        entity():soundPlay(1,0, "buttons/bell1.wav")
+        soundPitch(1, 120)
+    }
+    
+    if(clk("stop")){
+        GameMode = 3
+        soundStop(5)
+        soundPlay(6, 0, "ambient/alarms/warningbell1.wav")
+    }
+}
+
+if(GameMode == 3){
+    GameMode = 4
+    Word1 = "Score : " + Score1
+    Word2 = "Score : " + Score2
+    
+    timer("soundwin",2 * 1000)
+    timer("replay",10 * 1000)
+    
+    if(Score1 > Score2){
+        entity():streamStart(1,"https://dl.dropboxusercontent.com/s/h5pg4xbiceyd5eu/27480024.mp3?dl=0")
+    }
+    if(Score2 > Score1){
+        entity():streamStart(1,"https://dl.dropboxusercontent.com/s/y1mziu12p8u1xjh/27480070.mp3?dl=0")   
+    }
+}
+
+
+if(GameMode == 4){
+    if(clk("soundwin")){
+        entity():soundPlay(2,0, "music/dominating.wav")
+    }
+    if(clk("replay")){
+        GameMode = 0
+        Word1 = Word2 = "Pour jouer utilisez le clavier"
+        entity():soundPlay(2,0, "buttons/button5.wav")
+    }
+    
+}
+
