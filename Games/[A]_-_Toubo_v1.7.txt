@@ -1,0 +1,338 @@
+@name [A] - Toubo v1.7
+@inputs 
+@outputs ActualAction:string Food:entity
+
+@persist E:entity
+@persist ScaleStates:number 
+@persist Action:table 
+@persist Color2:vector
+
+@persist Ratio Ranger:ranger            #move
+@persist Player:entity                  #follow player
+@persist FavoriteFood:string Food:entity#findfood
+@persist AJump AJumpCOS                 #jump
+@persist RandomRotation                 #turn
+
+@trigger all
+
+
+if(first() | dupefinished()){
+    
+    runOnTick(1)
+    
+    E = entity()               #Do not touch
+    Color = vec(100,150,255)     #It's the color of the eyes and the mouth
+    Color2 = vec(255,255,255)   #It's the cube color
+    ScaleStates = 1            #Do not touch
+    Retry = 0                  #Do not touch
+    Ratio = 0                  #Do not touch
+    
+    FavoriteFood = "models/props_junk/watermelon01.mdl"
+    
+    hint("Made by Adrien - Adrien#3880", 10)
+    
+    timer("eyes", 500)         #Do not touch
+    timer("action", 500)       #Do not touch
+    
+    
+    function build(Index:number,Model:string, Pos:vector, Ang:angle, Parent:entity, Scale:vector, Color:vector){
+        holoCreate(Index,E:toWorld(Pos))
+        holoModel(Index, Model)
+        holoAng(Index, E:toWorld(Ang))
+        holoParent(Index, Parent)
+        holoScale(Index, Scale)
+        holoColor(Index, Color)
+    }
+    
+    I=1
+    A=0
+    build(I, "models/holograms/hq_rcube.mdl", vec(0,0,5), ang(0), E, vec(1), Color2)
+    I++
+    build(I, "models/holograms/hq_icosphere.mdl", vec(6,-2.5,6), ang(0), holoEntity(I-1), vec(0.1,0.2,0.2), Color)
+    I++
+    build(I, "models/holograms/hq_icosphere.mdl", vec(6,2.5,6), ang(0), holoEntity(I-2), vec(0.1,0.2,0.2), Color)
+    I++
+    build(I, "models/holograms/hq_icosphere.mdl", vec(6,0,2), ang(0), holoEntity(I-2), vec(0.01,0.5,0.1), Color)
+    
+    
+    function action(Name:string){
+        A++
+        Action[A,string] = Name
+    }
+    
+    #Setup of the differents actions
+    
+        action("move")
+        action("jump")
+        action("followowner")
+        action("followplayer")
+        action("findfood")
+        action("turn")
+        action("nothing")
+    
+
+}
+
+
+### Scaling ###
+function scaling(Upgrade:number){
+    ScaleStates+=Upgrade
+    build(1, "models/holograms/hq_rcube.mdl", vec(0,0,5)*ScaleStates, ang(0), E, vec(1)*ScaleStates, Color2)
+    holoPos(2, E:toWorld(vec(6,-2.5,6)*ScaleStates))
+    holoPos(3, E:toWorld(vec(6,2.5,6)*ScaleStates))
+    holoPos(4, E:toWorld(vec(6,0,2)*ScaleStates))
+}
+
+
+###Eyes###
+if(clk("eyes")){
+    timer("eyes", round(random(50,8000)))
+    holoScale(2, vec(0.1,0.2,0.05)*ScaleStates)
+    holoScale(3, vec(0.1,0.2,0.05)*ScaleStates)
+    timer("reseteyes", 80)
+}
+if(clk("reseteyes")){
+    holoScale(2, vec(0.1,0.2,0.2)*ScaleStates)
+    holoScale(3, vec(0.1,0.2,0.2)*ScaleStates)
+}
+###
+
+
+
+###Actions###
+
+if(clk("action") & ActualAction==""){
+    Rand = randint(Action:count())       #Choose random action in the table
+    ActualAction = Action[Rand,string]   #Select the action
+}
+
+
+if((changed(ActualAction) & ActualAction!="") | Retry == 1){
+    local Retry = 0
+    
+    
+    if(ActualAction == "move"){
+        Ratio = 0
+        
+        holoCreate(100)
+        holoPos(100, E:toWorld(vec(random(-500,500),random(-500,500),0)))
+        holoAlpha(100,0)
+        
+        holoCreate(101)
+        holoPos(101, E:toWorld(vec(0,0,0)))
+        holoAng(101, (holoEntity(100):pos()-holoEntity(101):pos()):toAngle())
+        holoAlpha(101,0)
+        
+#        holoEntity(100):setTrails(10,10,10,"trails/physbeam",vec(255),255,1,1)
+        Ranger = ranger(holoEntity(101),9999999)
+        timer("checkranger",30)
+    }
+    
+    
+    if(ActualAction=="jump"){
+        holoCreate(100)
+        holoPos(100, E:pos())
+        holoAlpha(100,0) 
+    }
+    
+    
+    if(ActualAction=="followowner"){
+        if(owner():pos():distance(E:pos())>500){
+            ActualAction = ""
+            timer("action", 100)
+        }
+        else{
+            holoCreate(100)
+            holoPos(100, E:pos())
+            holoAlpha(100,0)
+        }
+    }
+    
+    
+    if(ActualAction == "followplayer"){
+        Player = players()[round(random(0,numPlayers())),entity]
+        if(Player:pos():distance(E:pos())>500){
+            ActualAction = ""
+            timer("action", 100)
+            Player = noentity()
+        }
+        else{
+            holoCreate(100)
+            holoPos(100, E:pos())
+            holoAlpha(100,0)
+        }
+    }
+    
+    
+    if(ActualAction == "findfood"){
+        holoCreate(100)
+        holoPos(100, E:toWorld(vec(0,0,25)))
+        holoAng(100, E:toWorld(ang(0,-90,0)))
+        holoParent(100, E)
+        holoModel(100, "models/sprops/misc/alphanum/alphanum_qmark.mdl")
+        
+        timer("stopfind",3000)
+    }
+    
+    
+    if(ActualAction == "turn"){
+        timer("stopturn",(round(random(0,1500))))
+        RandomRotation = round(random(0,2))
+    }
+    
+    
+    if(ActualAction == "nothing"){
+        timer("nextaction",(round(random(0,2500))))
+
+    }
+     
+    
+}
+
+if(ActualAction!=""){
+    
+    if(ActualAction=="move"){
+        if(clk("checkranger")){
+            if(round(Ranger:distance())+1 < E:pos():distance(holoEntity(100):pos())+1){
+                Retry = 1
+            }
+        }
+        if(round(Ranger:distance())+1 >= E:pos():distance(holoEntity(100):pos())+1){
+            if(Ratio<1){
+                
+                Ratio+=0.003 + (holoEntity(101):pos():distance(holoEntity(100):pos()))/10^15
+                E:setPos(bezier(holoEntity(101):pos(), (holoEntity(101):pos()+holoEntity(100):pos())/2, holoEntity(100):pos(), Ratio))
+                E:setAng((holoEntity(100):pos()-E:pos()):toAngle())
+            }
+            else{
+                holoDelete(100)
+                holoDelete(101)
+                ActualAction=""
+                timer("action", 1000)
+                Ratio = 0
+            }
+        } 
+    }
+    
+    
+    if(ActualAction=="followowner"){
+        if(owner():pos():distance(E:pos())<800){
+            Ratio+=0.003 + (E:pos():distance(holoEntity(100):pos()))/10^15
+            E:setPos(bezier(holoEntity(100):pos(), (owner():pos()+holoEntity(100):pos())/2, owner():pos(), Ratio))
+            E:setAng((owner():pos()-E:pos()):toAngle())
+        }
+        if(owner():pos():distance(E:pos())<100 | owner():pos():distance(E:pos())>800){
+            holoDelete(100)
+            ActualAction=""
+            timer("action", 1500)
+            Ratio = 0
+        }
+    }
+    
+    
+    if(ActualAction=="followplayer"){
+        if(Player:pos():distance(E:pos())<800){
+            Ratio+=0.003 + (E:pos():distance(holoEntity(100):pos()))/10^15
+            E:setPos(bezier(holoEntity(100):pos(), (Player:pos()+holoEntity(100):pos())/2, Player:pos(), Ratio))
+            E:setAng((Player:pos()-E:pos()):toAngle())
+        }
+        if(Player:pos():distance(E:pos())<100 | Player:pos():distance(E:pos())>800){
+            holoDelete(100)
+            ActualAction=""
+            timer("action", 2000)
+            Ratio = 0
+        }
+    }
+    
+    
+    if(ActualAction=="jump"){
+        AJump+=2
+        AJumpCOS=cos(AJump)
+        if(AJump<=90){
+            E:setPos(bezier(holoEntity(100):pos(), holoEntity(100):toWorld(vec(0,0,80)), holoEntity(100):pos(), AJumpCOS))
+        }
+        else{
+            AJump=0
+            AJumpCOS=0
+            ActualAction=""
+            timer("action", 500)
+            holoDelete(100)
+        }
+    }
+    
+    
+    if(ActualAction == "findfood"){
+        if((Food==noentity()) | (Food:pos()==vec(0) & Food:model()!=FavoriteFood) ){
+            findInSphere(E:pos(),8000)
+            findByClass("prop_physics") 
+            findByModel(FavoriteFood)
+
+            
+            Food = findResult(1)
+        }
+        if(Food:pos()!=vec(0) & changed(Food:model() == FavoriteFood & Food:pos():distance(E:pos())<800 & Food:pos():z()-10 < E:pos():z()) & Food:model() == FavoriteFood & Food:pos():distance(E:pos())<800 & Food:pos():z()-10 < E:pos():z()){
+            holoCreate(101)
+            holoPos(101, E:pos())
+            holoAlpha(101,0)
+            
+            holoCreate(102)
+            holoPos(102, Food:pos()-vec(0,0,3.5))
+            holoAlpha(102,0)
+            E:setAng(( holoEntity(102):pos() - E:pos()):toAngle())
+        }
+        if(Food:model() == FavoriteFood & Food:pos():distance(E:pos())<800 & Food:pos():z()-10 < E:pos():z() & Food:pos():distance(E:pos())>20 & Food:pos()!=vec(0)){
+            holoModel(100, "models/sprops/misc/alphanum/alphanum_xmark.mdl")
+            stoptimer("stopfind")
+            
+            Ratio+=0.003 + (E:pos():distance(Food:pos()))/10^15
+            E:setPos(bezier(holoEntity(101):pos(), (holoEntity(102):pos() + holoEntity(101):pos())/2, holoEntity(102):pos() , Ratio))
+        
+            
+        }
+        if(Food:pos():distance(E:pos())<20){
+            holoDelete(100)
+            holoDelete(101)
+            holoDelete(102)
+            ActualAction=""
+            timer("action", 2000)
+            Ratio = 0
+            Food:propDelete()
+            Food:setPos(vec(0))
+            findExcludeEntity(Food)
+            E:soundPlay(1,0,"physics/flesh/flesh_bloody_impact_hard1.wav")
+            
+            scaling(0.2)
+            
+        }
+        if(clk("stopfind")){
+            ActualAction=""
+            timer("action", 500)
+            holoDelete(100)
+            Food = noentity()
+            Ratio = 0
+        }
+    }
+        
+    
+    if(ActualAction=="turn"){
+        if(RandomRotation < 1){
+            E:setAng(E:toWorld(ang(0,-1.5,0)))
+        }
+        else{
+            E:setAng(E:toWorld(ang(0,1.5,0)))
+        }
+        if(clk("stopturn")){
+            ActualAction=""
+            timer("action", 1500)
+        }
+    }
+    
+    
+    if(ActualAction=="nothing"){
+        if(clk("nextaction")){
+            ActualAction=""
+            timer("action", 1500)
+        }
+    }
+}
+

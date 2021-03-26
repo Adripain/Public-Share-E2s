@@ -1,0 +1,93 @@
+@name [A] - Creative aera
+@outputs Detec:entity I Props
+@persist I Count
+@persist Radius RadiusSqr
+@persist HoloAng:angle Tank_Proba
+@trigger all
+
+if(first()){
+    
+    runOnTick(1)
+    
+    Radius = 1000
+    RadiusSqr = Radius * Radius
+
+
+    
+    local Index=1
+    holoCreate(Index)
+    holoModel(Index, "models/hunter/misc/sphere2x2.mdl")
+    holoScale(Index, vec(20))
+    holoMaterial(Index, "phoenix_storms/glass")
+    holoParent(Index, entity())
+    
+    Index++    
+    holoCreate(Index)
+    holoModel(Index, "models/hunter/misc/sphere2x2.mdl")
+    holoScale(Index, vec(-20))
+    holoMaterial(Index, "phoenix_storms/glass")
+    holoParent(Index, entity())
+    
+    Index++    
+    holoCreate(Index)
+    holoParent(Index, entity())
+    holoAlpha(Index, 0)
+    
+    Index++    
+    holoCreate(Index)
+    holoParent(Index, holoEntity(Index-1))
+    holoPos(Index, holoEntity(Index-1):toWorld(vec(0,Radius*940/1000,0)))
+    holoAlpha(Index, 0)
+    
+    Index++    
+    holoCreate(Index)
+    holoParent(Index, holoEntity(Index-2))
+    holoPos(Index, holoEntity(Index-2):toWorld(vec(0,-Radius*940/1000,0)))
+    holoAlpha(Index, 0)
+    
+    holoEntity(Index-1):setTrails(20,2,5,"trails/plasma",vec(250,90,0),200)
+    holoEntity(Index):setTrails(20,2,5,"trails/plasma",vec(250,90,0),200)
+    
+    HoloAng = holoEntity(3):angles()
+    Owner = owner()
+    
+} elseif(tickClk()) {
+
+    HoloAng+=ang(0,0.6,0)
+    holoAng(3, HoloAng)
+    
+    I+=1
+    findIncludeClass("prop")
+    findInSphere(entity():pos(),Radius)
+    Detec=findResult(I)
+    
+    if(Detec:model()==""){
+        I=0
+    }
+    Tank_Proba = 0
+    Tank_Proba+= 1 * Detec:getConstraints():count()
+    if(Tank_Proba >=10 && Detec:owner():isValid()){
+        for(A=1, Detec:getConstraints():count()){
+            if(Detec:model() == "models/sprops/trans/miscwheels/tank15.mdl"){Tank_Proba+=40}
+            if(Detec:model() == "models/sprops/trans/miscwheels/tank20.mdl"){Tank_Proba+=40}
+            if(Detec:model() == "models/sprops/trans/miscwheels/tank25.mdl"){Tank_Proba+=40}
+            if(Detec:model() == "models/sprops/trans/miscwheels/tank30.mdl"){Tank_Proba+=40}
+            if(Detec:model() == "models/sprops/trans/wheel_b/wheel15.mdl"){Tank_Proba+=15}
+            if(Detec:model() == "models/sprops/trans/wheel_b/wheel20.mdl"){Tank_Proba+=15}
+            if(Detec:model() == "models/sprops/trans/wheel_b/wheel25.mdl"){Tank_Proba+=15}
+            if(Detec:model() == "models/sprops/trans/wheel_b/wheel30.mdl"){Tank_Proba+=15}
+            if(Detec:mass() > 0){Tank_Proba+=floor(Detec:mass()/100)}
+            if(Detec:boxSize():x() + Detec:boxSize():y() +  Detec:boxSize():z() > 100){Tank_Proba+=floor((Detec:boxSize():x() + Detec:boxSize():y() +  Detec:boxSize():z())/100)}
+        }
+        if(Tank_Proba >=100){
+            print(Tank_Proba)
+            
+            P = propSpawn("models/props_wasteland/cargo_container01.mdl", Detec:pos()+ vec(0,0,500), Detec:angles(), 0)
+            P:setMass(50000)
+            P:applyForce(-P:up() * P:mass() * 50000)
+            print(Detec:owner())
+            Tank_Proba = 0
+        }
+    }
+
+}

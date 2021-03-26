@@ -1,0 +1,192 @@
+@name [A] - Chat
+@inputs 
+@outputs Players:array Numplayer:number Cat:entity OldCat:entity
+@persist [Cat OldCat]:entity
+@persist Players:array Numplayer:number
+@persist Mode:number HasPower:number ChoosePower:number CountofPower:number
+@persist SoundScream:array
+@trigger all
+
+if(first() | dupefinished()){
+    
+    runOnTick(1)
+    runOnChat(1)
+    
+    Cat = noentity()
+    OldCat = noentity()
+    Mode = 1         #Do not toucj
+    HasPower = 1     #Put -1 in no
+    Numplayer = 0    #Do not toucj
+    CountofPower = 1
+    
+    SoundScream[1,string] = "ambient/voices/f_scream1.wav"
+    SoundScream[2,string] = "ambient/voices/m_scream1.wav"
+    
+    holoCreate(1)
+    holoModel(1, "models/sprops/misc/alphanum/alphanum_arrow_a.mdl")
+    holoPos(1, entity():toWorld(vec(0,0,40)))
+    holoMaterial(1, "models/props_combine/tpballglow")
+    holoAlpha(1,0)
+
+    holoCreate(2)
+    holoPos(2, entity():toWorld(vec(0,0,40)))
+    holoAlpha(2,0)
+    
+    holoEntity(1):particleAttach("spell_fireball_small_trail_blue")
+    timer("power",30000)
+}
+
+
+
+if(Mode == 1){
+        
+    for(I=1,numPlayers()){
+        local String = players()[I,entity]:lastSaid():explode(" ")
+
+        if(chatClk(players()[I,entity]) & String:string(1)=="/join" & players()[I,entity]!=Players[I,entity]){
+            Numplayer+=1
+            Players[Numplayer,entity] = players()[I,entity]
+            players()[I,entity]:sendMessageColor(vec(255), "(!) You joined the game, ", teamColor(players()[I,entity]:team()), players()[I,entity]:name(), vec(255), ".")
+            players()[I,entity]:sendMessageColor(vec(255), "(!) Cat must touch other players who will in turn be the cat! ")
+            players()[I,entity]:sendMessageColor(vec(255), "(!) Cat has random special power every 60 seconds! ")
+            players()[I,entity]:soundPlay(I,0,"buttons/blip2.wav")
+            if(players()[I,entity] != owner()){
+                owner():sendMessageColor(vec(255), "(!) ", teamColor(players()[I,entity]:team()), players()[I,entity]:name(), vec(255), " join the game." )
+            }
+        }
+    }
+    
+        local StringLocal = owner():lastSaid():explode(" ")
+
+
+        if(chatClk(owner()) & StringLocal:string(1)=="/start"){
+            
+            Mode = 2
+            Cat = Players[floor(random(1,Numplayer)),entity]
+            holoParent(1, Cat)
+            for(I=1, Numplayer){
+                Players[I,entity]:sendMessageCenter("Have fun, let's go ! ")
+                Players[I,entity]:sendMessageColor(vec(255), "(!)", vec(255), "The game is lunched. Cat is ", vec(255,0,0), Cat:name(), vec(255), " ! Good luck :D")
+                Players[I,entity]:plySetSpeed(230)
+            }
+            
+            Cat:particleAttach("weight_dust")
+        }
+        
+}
+
+
+if(Mode == 2){
+    
+    for(I=1, Numplayer){
+        
+        if(Cat:keyAttack2() & Cat:pos():distance(Players[I,entity]:pos())<110){
+            timer("cat",10)
+            OldCat = Cat
+            
+        }
+        if(clk("cat") & Players[I,entity]:pos():distance(Cat:pos()) < 200){
+            holoEntity(2):soundPlay(2,2,"buttons/button1.wav")
+        }
+        if(clk("cat") & Players[I,entity]!=Cat){
+            holoEntity(2):soundPlay(2,2,"ambient/levels/citadel/portal_beam_loop1.wav")
+        }
+        if(Cat:keyAttack2() & Cat:pos():distance(Players[I,entity]:pos())<110 & clk("cat")){
+            if(Players[I,entity]!=Cat){
+            holoPos(2, (Cat:pos() +  Players[I,entity]:pos())/2)
+            Cat:plyApplyForce( (Cat:pos()-holoEntity(2):pos()):normalized()*1000)
+            Players[I,entity]:plyApplyForce( (Players[I,entity]:pos()-holoEntity(2):pos()):normalized()*4000)
+            Cat=Players[I,entity]
+            holoParent(1, Cat)
+            Cat:plySetHealth(100)
+            }
+        }
+    }
+    
+}
+
+
+if(Cat:isPlayer()){
+    holoPos(1, Cat:toWorld(vec(0,0,90)))
+
+}
+
+
+
+if(changed(Cat:name()) & Cat!=noentity()){
+    
+    if(clk("cat")){
+        holoEntity(2):soundPlay(1,0,"ambient/levels/citadel/weapon_disintegrate3.wav")
+        for(I=1, Numplayer){
+            
+            Players[I,entity]:sendMessageColor(vec(255), "(!)", vec(255), " Cat is now ", teamColor(Cat:team()) , Cat:name(), vec(255), " ! ")
+            Players[I,entity]:plySetSpeed(230)
+            Cat:plySetSpeed(270)
+            HasPower = 0
+            holoEntity(2):particleAttach("taunt_demo_nuke_explosion")
+            timer("sound",300)
+        }
+    }
+}
+
+if(clk("sound")){
+    if(Cat:pos():distance(OldCat:pos())>700){
+        Cat:soundPlay(3,0,"misc/rubberglove_snap.wav")
+        OldCat:soundPlay(4,0,"misc/rubberglove_snap.wav")
+        
+    }
+}
+
+if(clk("power") & HasPower>=0){
+    timer("power",60000)
+    HasPower+=1
+}
+if(changed(HasPower)){
+    Cat:sendMessageColor(vec(255), "(!)", vec(255), "You have : ", vec(255,120,0), HasPower , vec(255), " power.")
+}
+
+if(HasPower>0 & changed(Cat:keyReload()) & Cat:keyReload()==1){
+    HasPower-=1
+    ChoosePower=random(1,2)
+}
+
+if(floor(ChoosePower*CountofPower)==1){
+    ChoosePower = 0
+    Cat:sendMessageColor(vec(255), "(!)", vec(255), "You have used : ", vec(255,0,0), "Scream" , vec(255), " power.")
+    for(I=1, Numplayer){
+        if(Players[I,entity]!=Cat){
+            holoCreate(I)
+            holoPos(I, Players[I,entity]:pos())
+            holoAlpha(I,0)
+            holoEntity(I):soundPlay(5+I,5,SoundScream[(floor(random(1,2))),string])
+        }
+    }
+    timer("stopsound",2500)
+
+}
+if(floor(ChoosePower*CountofPower)==2){
+    ChoosePower = 0
+    timer("normal",2500)
+    Cat:sendMessageColor(vec(255), "(!)", vec(255), "You have used : ", vec(255,0,0), " Low Speed" , vec(255), " power.")
+    for(I=1, Numplayer){
+        if(Players[I,entity]!=Cat){
+            Players[I,entity]:plySetSpeed(150)
+            Cat:soundPlay(1000,5,"ambient/levels/prison/radio_random11.wav")
+        }
+    }
+}
+
+
+if(clk("normal")){
+        for(I=1, Numplayer){
+        if(Players[I,entity]!=Cat){
+            Players[I,entity]:plySetSpeed(230)
+            Players[I,entity]:soundPlay(5+I,0,"ambient/machines/thumper_startup1.wav")
+        }
+    }
+}
+if(clk("stopsound")){
+            for(I=1, Numplayer){
+            holoDelete(I)
+    }
+}

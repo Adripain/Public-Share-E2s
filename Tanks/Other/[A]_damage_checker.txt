@@ -1,0 +1,103 @@
+@name [A] - Damage relativity
+@inputs [EMFront EMRight EMBack EMLeft]:array Driver:entity
+@outputs ActualHealthFront
+@persist [TotalHealthFront TotalHealthRight TotalHealthBack TotalHealthLeft]:number
+@persist [ActualHealthFront ActualHealthRight ActualHealthBack ActualHealthLeft]:number
+@persist
+@persist [E]:entity
+@trigger 
+
+if(first() | dupefinished()){
+    
+    if(duped()){reset()}
+
+    runOnTick(1)   
+    
+    E = entity()
+    
+    function build(Index:number,Model:string, Pos:vector, Ang:angle, Parent:entity){
+        holoCreate(Index,Pos)
+        holoModel(Index, Model)
+        holoAng(Index, Ang)
+        holoParent(Index, Parent)
+    }
+    
+    build(1, "models/bull/dynamicbuttonmedium.mdl", entity():toWorld(vec(0)), entity():toWorld(ang(0)), entity())
+    holoScale(1, vec(1.5))
+    build(2, "models/props_skybox/sunnoon.mdl", entity():toWorld(vec(0,0,2.3)), entity():toWorld(ang(-90,0,0)), entity())
+    holoScale(2, vec(0.11))
+    holoColor(2, vec(250,255,100))
+    
+    timer("Calc1",100)
+    timer("Calc2",200)
+    timer("Calc3",400)
+    timer("Calc4",500)
+    
+    timer("ActualCalc",1000)
+}
+
+if(clk("Calc1")){
+        for(I=1, EMFront:count()){
+        TotalHealthFront = (EMFront[I,entity]:acfPropHealthMax() + EMFront[I,entity]:acfPropArmorMax())
+    }
+
+    print("Front : " + TotalHealthFront)
+}
+if(clk("Calc2")){
+        for(I=1, EMRight:count()){
+        TotalHealthRight = (EMRight[I,entity]:acfPropHealthMax() + EMRight[I,entity]:acfPropArmorMax())
+    }
+
+    print("Right : " + TotalHealthRight)
+}
+if(clk("Calc3")){
+        for(I=1, EMBack:count()){
+        TotalHealthBack = (EMBack[I,entity]:acfPropHealthMax() + EMBack[I,entity]:acfPropArmorMax())
+    }
+
+    print("Back : " + TotalHealthBack)
+}
+if(clk("Calc4")){
+        for(I=1, EMLeft:count()){
+        TotalHealthLeft = (EMLeft[I,entity]:acfPropHealthMax() + EMLeft[I,entity]:acfPropArmorMax())
+    }
+
+    print("Left : " + TotalHealthLeft)
+}
+
+if(clk("ActualCalc")){
+    
+    timer("ActualCalc",500)
+    
+
+    for(I=1, EMFront:count()){
+        ActualHealthFront = (EMFront[I,entity]:acfPropHealth() + EMFront[I,entity]:acfPropArmor())
+    }
+    for(I=1, EMRight:count()){
+        ActualHealthRight = (EMRight[I,entity]:acfPropHealth() + EMRight[I,entity]:acfPropArmor())
+    }
+    for(I=1, EMBack:count()){
+        ActualHealthBack = (EMBack[I,entity]:acfPropHealth() + EMBack[I,entity]:acfPropArmor())
+    }
+    for(I=1, EMLeft:count()){
+        ActualHealthLeft = (EMLeft[I,entity]:acfPropHealth() + EMLeft[I,entity]:acfPropArmor())
+    }
+}
+
+if(changed(ActualHealthFront) & !first()){
+    Driver:sendMessageColor(vec(255,0,0), "Front", vec(255), " armor is", vec(255,0,0), round(ActualHealthFront/TotalHealthFront*100), vec(255), " %")
+}
+if(changed(ActualHealthRight) & !first()){
+    Driver:sendMessageColor(vec(255,0,0), "Right", vec(255), " armor is", vec(255,0,0), round(ActualHealthRight/TotalHealthRight*100), vec(255), " %")
+}
+if(changed(ActualHealthBack) & !first()){
+    Driver:sendMessageColor(vec(255,0,0), "Back", vec(255), " armor is", vec(255,0,0), round(ActualHealthBack/TotalHealthBack*100), vec(255), " %")
+}
+if(changed(ActualHealthLeft) & !first()){
+    Driver:sendMessageColor(vec(255,0,0), "Left", vec(255), " armor is", vec(255,0,0), round(ActualHealthLeft/TotalHealthLeft*100), vec(255), " %")
+}
+
+
+
+
+

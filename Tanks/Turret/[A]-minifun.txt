@@ -1,0 +1,195 @@
+@name [A] - MiniFun
+@inputs Fire [Gun1 Gun2 Gun3 Gun4 Gun5 Gun6]:entity
+@outputs Fire1 Fire2 Fire3 Fire4 Fire5 Fire6
+@outputs Reload
+@persist [Gun1 Gun2 Gun3 Gun4 Gun5 Gun6]:entity
+@persist E:entity Base_Color:vector Position:vector Dis:angle GunCount:number
+@persist Fire1 Fire2 Fire3 Fire4 Fire5 Fire6
+@persist RotateSpeed SpeedMax Heat_ratio Gun_Heat VarHeat Fire_t:table
+@trigger 
+
+interval(1)
+if(first() | dupefinished()){
+    
+
+    GunCount = 3     #Count of guns
+    SpeedMax = 30    #Speed of turning
+    Gun_Heat = 1     #Does the gun will be red as fuck
+    Heat_ratio = 2
+    Base_Color = Gun1:getColor()
+    
+    holoCreate(1)
+    holoParent(1,entity())
+    holoAlpha(1,0)
+    
+    Position = vec(30,0,0)
+    Dis = ang(0,0,120)
+    E = holoEntity(1)
+        
+    for(I=1, GunCount){
+        holoCreate(I+1)
+        holoParent(I+1,E)
+        holoAlpha(I+1, 0)
+        holoPos(I+1, holoEntity(1):toWorld(vec(0, sin(I*360/GunCount)*GunCount, cos(I*360/GunCount)*GunCount)))
+        holoAng(I+1, holoEntity(1):toWorld(ang(0, 0, tan(I*360/GunCount)*180)))
+        
+        Fire_t[I,number] = ((360/GunCount)*I)-5
+    }
+    Gun1:createWire(entity(),"Fire","Fire1")
+    Gun2:createWire(entity(),"Fire","Fire2")
+    Gun3:createWire(entity(),"Fire","Fire3")
+    Gun4:createWire(entity(),"Fire","Fire4")
+    Gun5:createWire(entity(),"Fire","Fire5")
+    Gun6:createWire(entity(),"Fire","Fire6")
+    
+    Gun1:createWire(entity(),"Reload","Reload")
+    Gun2:createWire(entity(),"Reload","Reload")
+    Gun3:createWire(entity(),"Reload","Reload")
+    Gun4:createWire(entity(),"Reload","Reload")
+    Gun5:createWire(entity(),"Reload","Reload")
+    Gun6:createWire(entity(),"Reload","Reload")
+    
+    Gun1:setPos(holoEntity(2):toWorld(Position))
+    Gun2:setPos(holoEntity(3):toWorld(Position))
+    Gun3:setPos(holoEntity(4):toWorld(Position))
+    Gun4:setPos(holoEntity(5):toWorld(Position))
+    Gun5:setPos(holoEntity(6):toWorld(Position))
+    Gun6:setPos(holoEntity(7):toWorld(Position))
+    
+    Gun1:setAng(holoEntity(2):toWorld(ang(0,0,0)))
+    Gun2:setAng(holoEntity(3):toWorld(ang(0,0,0)))
+    Gun3:setAng(holoEntity(4):toWorld(ang(0,0,0)))
+    Gun4:setAng(holoEntity(5):toWorld(ang(0,0,0)))
+    Gun5:setAng(holoEntity(6):toWorld(ang(0,0,0)))
+    Gun6:setAng(holoEntity(7):toWorld(ang(0,0,0)))
+    
+    timer("reload",200)
+}
+T = (holoEntity(1):angles()-entity():angles()+ang(0,0,0)):roll()+180
+if(entity():vel():length() > 0 | RotateSpeed > 0){
+    Gun1:setPos(holoEntity(2):toWorld(Position))
+    Gun2:setPos(holoEntity(3):toWorld(Position))
+    Gun3:setPos(holoEntity(4):toWorld(Position))
+    Gun4:setPos(holoEntity(5):toWorld(Position))
+    Gun5:setPos(holoEntity(6):toWorld(Position))
+    Gun6:setPos(holoEntity(7):toWorld(Position))
+    
+    soundPitch(1,RotateSpeed*1.2)
+
+    
+    Gun1:setAng(holoEntity(2):toWorld(ang(0,0,0)))
+    Gun2:setAng(holoEntity(3):toWorld(ang(0,0,0)))
+    Gun3:setAng(holoEntity(4):toWorld(ang(0,0,0)))
+    Gun4:setAng(holoEntity(5):toWorld(ang(0,0,0)))
+    Gun5:setAng(holoEntity(6):toWorld(ang(0,0,0)))
+    Gun6:setAng(holoEntity(7):toWorld(ang(0,0,0)))
+
+}
+if(Fire > 0){
+    Reload = 0
+    if(RotateSpeed<SpeedMax){
+        RotateSpeed+=0.2
+    }
+    if(VarHeat<250){
+        VarHeat += 0.05
+    }
+}
+
+if(changed(Fire) & Fire>0){entity():soundPlay(1,100,"acf_extra/tankfx/turret.wav")
+    entity():soundPlay(2,4,"acf_extra/airfx/turbo.wav")}
+
+if(Fire < 1){
+    if(RotateSpeed>0){
+        RotateSpeed-=0.2
+    }
+    if(VarHeat >0){
+        VarHeat -= 0.3
+    }
+}
+VarHeat -= 0.05
+if(Gun_Heat == 1){
+    Gun1:setColor(Base_Color + vec(0, -VarHeat, -VarHeat))
+    Gun2:setColor(Base_Color + vec(0, -VarHeat, -VarHeat))
+    Gun3:setColor(Base_Color + vec(0, -VarHeat, -VarHeat))
+}
+holoAng(1, holoEntity(1):toWorld(ang(0,0,sin(RotateSpeed)*15)))
+
+if(changed(Fire) && Fire == 0){
+    Reload = 1
+}
+
+if( RotateSpeed >= (SpeedMax-1) && VarHeat<180){
+    if(Gun1:isValid() & round(Fire_t[1,number]) > round(T-10) & round(Fire_t[1,number]) < round(T+10) & Fire == 1 ){
+        Fire2=Fire3=Fire4=Fire5=Fire6=0 
+        Fire1=1
+        if(VarHeat<250){
+            VarHeat += Heat_ratio
+        }
+    }
+
+    if(Gun2:isValid() & round(Fire_t[2,number]) > round(T-10) & round(Fire_t[2,number]) < round(T+10) & Fire == 1 ){
+        Fire1=0
+        Fire2=1
+        if(VarHeat<250){
+            VarHeat += Heat_ratio
+        }
+    }
+        
+    if(Gun3:isValid() & round(Fire_t[3,number])  > round(T-10) & round(Fire_t[3,number]) < round(T+10) & Fire == 1 ){
+        Fire2=0
+        Fire3=1
+        if(VarHeat<250){
+            VarHeat += Heat_ratio
+        }
+    }
+    
+    if(Gun4:isValid() & round(Fire_t[4,number])  > round(T-10) & round(Fire_t[4,number]) < round(T+10) & Fire == 1 ){
+        Fire3=0
+        Fire4=1
+        if(VarHeat<250){
+            VarHeat += Heat_ratio
+        }
+    }
+    
+    if(Gun5:isValid() & round(Fire_t[5,number])  > round(T-10) & round(Fire_t[5,number]) < round(T+10) & Fire == 1 ){
+        Fire4=0
+        Fire5=1
+        if(VarHeat<250){
+            VarHeat += Heat_ratio
+        }
+    }
+    
+    if(Gun6:isValid() & round(Fire_t[6,number]) > round(T-10) & round(Fire_t[6,number]) < round(T+10) & Fire == 1 ){
+        Fire5=0
+        Fire6=1
+        if(VarHeat<250){
+            VarHeat += Heat_ratio
+        }
+    }
+}
+else{Fire1=0
+    Fire2=0
+    Fire3=0
+    Fire4=0
+    Fire5=0
+    Fire6=0 
+    }
+if(Fire1 == 1 | Fire2 == 1 | Fire3 == 1 | Fire4 == 1 | Fire5 == 1 | Fire6 == 1 ){
+    timer("stop",50)
+}
+if(clk("reload")){
+    Fire1=1
+    Fire2=1
+    Fire3=1
+    Fire4=1
+    Fire5=1
+    Fire6=1 
+}
+if(clk("stop")){
+    Fire1=0
+    Fire2=0
+    Fire3=0
+    Fire4=0
+    Fire5=0
+    Fire6=0 
+}

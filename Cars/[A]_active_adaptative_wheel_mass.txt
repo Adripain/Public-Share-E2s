@@ -1,0 +1,43 @@
+@name [A] - Exel adhesion
+@inputs [WheelFrontRight WheelFrontLeft WheelBackRight WheelBackLeft]:entity Pod:wirelink
+@outputs 
+@persist Base:entity Weight:array
+@trigger 
+
+interval(20)
+
+if(first() |dupefinished()){
+    Base=entity():isWeldedTo()
+    Weight[1,number]=WheelFrontRight:mass()
+    Weight[2,number]=WheelFrontLeft:mass()
+    Weight[3,number]=WheelBackRight:mass()
+    Weight[4,number]=WheelBackLeft:mass()
+}
+
+W = Pod["W",number]
+A = Pod["A",number]
+S = Pod["S",number]
+D = Pod["D",number]
+Space = Pod["Space",number]
+Shift = Pod["Shift",number]
+Active = Pod["Active",number]
+
+if(Active){
+    
+    function setweight(W1:number, W2:number, W3:number, W4:number){
+        
+        WheelFrontRight:setMass(W1 > 0 ? W1 : Weight[1,number])
+        WheelFrontLeft:setMass(W2 > 0 ? W2 : Weight[2,number])
+        WheelBackRight:setMass(W3 > 0 ? W3 : Weight[3,number])
+        WheelBackLeft:setMass(W4 > 0 ? W4 : Weight[4,number])
+        
+    }
+    if(A){ setweight(0,Weight[2,number]+1/3*Base:mass(),0,Weight[4,number]+1/3*Base:mass())}
+    if(D){ setweight(Weight[1,number]+1/3*Base:mass(),0,Weight[3,number]+1/3*Base:mass(),0)}
+}
+Base:applyForce(-Base:up()*Base:mass()*Base:vel():length()/50)
+
+if(W){
+    Speed = toUnit("km/h", Base:vel():length())
+    Base:applyForce(-Base:right()*Base:mass()* (Speed ? Base:vel():length()/60 : 0))
+}
