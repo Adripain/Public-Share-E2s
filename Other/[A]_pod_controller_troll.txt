@@ -1,0 +1,61 @@
+@name Nekroz pu du cul
+
+#Settings.
+@persist Constant Damping Length HrydroNumber
+@persist ConstantHydro:array DampingHydro:array LengthHydro:array
+
+#Inputs Hydro => E2.
+@outputs WW
+
+#Stop.
+@persist HydroNumberTry A 
+
+interval(10)
+if(first() | dupefinished())
+{
+    #Run.
+        entity():setAlpha(0)
+    #Editable.
+        HrydroNumber = 1
+    
+    #Do not touch.
+        HydroNumberTry = 0
+    
+    #Function.
+        function findHydroAndSetSettings()
+        {
+            findInSphere(entity():pos(),200000)
+            findIncludeClass("gmod_wire_pod")
+            HrydroNumber = findInSphere(entity():pos(),200000)
+            for(I=1, HrydroNumber)
+            {
+                HydroFind = findResult(I)
+                
+                if(HydroFind)
+                {
+                    HydroFind:createWire(entity(),"Terminate","WW")
+                    
+                    WW = 1
+                    
+                    HydroNumberTry++
+                }
+            }
+        }
+}
+
+#Retry operation until hydroNumber.
+if(changed(HydroNumberTry))
+{
+    if(HydroNumberTry <= HrydroNumber)
+    {
+        findHydroAndSetSettings()
+    }
+}
+
+WW = floor(random(0,2))
+
+A+=1
+
+if(A>500){
+    reset()
+}
