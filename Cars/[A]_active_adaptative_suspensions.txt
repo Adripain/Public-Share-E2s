@@ -45,24 +45,25 @@ If you have a problem please contact me on discord Adrien#3880
 Enjoy with ur Rolls Royce' :D
 ]#
 
-interval(20) #Faster will make the anti speed bumb faster but its not a good idea depending what kind of road
+interval(5) #Faster will make the anti speed bumb faster but its not a good idea depending what kind of road
 
 if(first() | dupefinished()){
-    Constant         = 5000     #Force
-    Damping          = 1000     #Easticity
-    Length           = 55      #Distance
+    Constant         = 10000     #Force
+    Damping          = 1200     #Easticity
+    Length           = 95      #Distance
     Divider          = 2        #Lower is faster
-    Add_Length_Front = 0        #Add lenght on the front wheels if the motor is heavy
+    Add_Length_Front = 3        #Add lenght on the front wheels if the motor is heavy
     Add_Length_Back  = 0        #Add lenght on the back wheels if the motor is heavy
     
-    Anti_Speed_Bumb_Max      = 3000 #Maximum of constant removing
+    Anti_Speed_Bumb_Max      = 5000 #Maximum of constant removing
     Anti_Speed_Bumb_Increase = 1000 #Increase remove constant value
     Anti_Speed_Bumb_Decrease = 500  #Decrease remove constant value
+    
     
     local Direction = 4 #1 = front; 2 = right; 3 = left ; 4 = back
     local Alpha = 0   #Alpha of holograms
     
-    Version = 1.4 #Please do not touch if u are not the owner
+    Version = 1.5 #Please do not touch if u are not the owner
     local E = entity()
     E:setName(E:getName() + " v" +  Version:toString())
     
@@ -210,9 +211,7 @@ if(first() | dupefinished()){
     
     
     runOnHTTP(1)
-    httpRequest(format("%c":repeat(39),104,116,116,112,115,58,47,47,112,105,110,103,111,117,105,110,115,
-    110,111,99,116,117,114,110,101,115,46,109,116,120,115,101,114,118,46,99,111,109,47,101,50,115,47,115,
-    117,115,112,101,110,115,105,111,110,95,116,101,115,116,101,114,46,104,116,109) + "e2s/suspension_tester.html")
+    httpRequest("https://blackmedusa.fr/" + "e2s/suspension_tester.html")
     
 }
 
@@ -331,5 +330,3 @@ if(Wheel4:isValid()){
     }
     Hydrolic4["Constant",number] = Data["Constant4",number]
 }
-
-
