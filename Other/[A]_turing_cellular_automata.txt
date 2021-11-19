@@ -1,0 +1,142 @@
+@name Turing Cellular Automaton
+@inputs Digital_Screen:wirelink ButtonRefresh ButtonCalc
+@outputs Execution
+@persist Size_X Size_Y Count_Of_Cases Need_Refresh Need_Calc
+@persist Map:table New_Table:table Print_X Print_Y I J
+@trigger ButtonRefresh ButtonCalc
+
+
+interval(1) #Made By Adrien
+
+if (first() | dupefinished())
+{
+    Size_X = 10
+    Size_Y = 10
+    Count_Of_Cases = Size_X * Size_Y
+    
+    for (I = 0, Size_Y - 1, 1) {
+        Map[I, array] = array()
+        New_Table[I, array] = array()
+        for (J = 0, Size_X - 1, 1) {
+            Map[I, array][J, number] = 0
+        }
+    }
+
+    Map[3, array][1, number] = 255
+    Map[3, array][2, number] = 255
+    Map[3, array][3, number] = 255
+    Map[2, array][3, number] = 255
+    Map[1, array][2, number] = 255
+    Need_Refresh = 1
+}
+
+if (Need_Refresh == 1)
+{
+    if (Print_Y <= Size_Y){
+        Digital_Screen["PixelX",number] = Print_X
+        Digital_Screen["PixelY",number] = Print_Y
+        Digital_Screen["PixelG",number] = Map[Print_Y, array][Print_X - 1, number]
+        if (Print_X >= Size_X) {
+            Print_X = 0
+            Print_Y += 1
+        } else {
+            Print_X += 1
+        }
+    } else {
+        Need_Refresh = 0
+    }
+}
+
+function number count_Friends_Around(X:number, Y:number)
+{
+    local Count = 0
+    
+    if (X > 0 && Map[Y, array][X - 1, number] == 255) {
+        Count += 1
+    }
+    if (Y > 0 && Map[Y - 1, array][X, number] == 255) {
+        Count += 1
+    }
+    if (Y < Size_Y && Map[Y + 1, array][X, number] == 255) {
+        Count += 1
+    }
+    if (X < Size_X && Map[Y, array][X + 1, number] == 255) {
+        Count += 1
+    }
+    if (X > 0 && Y > 0 && Map[Y - 1, array][X - 1, number] == 255) {
+        Count += 1
+    }
+    if (X > 0 && Y < Size_Y && Map[Y + 1, array][X - 1, number] == 255) {
+        Count += 1
+    }
+    if (X < Size_X && Y > 0 && Map[Y - 1, array][X + 1, number] == 255) {
+        Count += 1
+    }
+    if (X < Size_X && Y < Size_Y && Map[Y + 1, array][X + 1, number] == 255) {
+        Count += 1
+    }
+    return Count
+}
+
+function number dead_Or_Alive(X:number, Y:number)
+{
+    local Count = count_Friends_Around(X, Y)
+    if (Map[Y, array][X, number] == 255) {
+        if (Count == 2 || Count == 3) {
+            return 255
+        }
+    }
+    if (Map[Y, array][X, number] == 0) {
+        if (Count == 3) {
+            return 255
+        }
+    }
+    return 0 
+}
+
+if (Need_Calc == 1)
+{
+    New_Table[I, array][J, number] = 0
+    if(Map[I, array][J, number] == 255) {
+        if(count_Friends_Around(J, I)  == 2 | count_Friends_Around(J, I) == 3) {
+            New_Table[I, array][J, number] = 255
+        }
+        else {
+            New_Table[I, array][J, number] = 0
+        }
+    }
+    if(Map[I, array][J, number] == 0) {
+        if(count_Friends_Around(J, I) == 3) {
+            New_Table[I, array][J, number] = 255
+        }
+        else {
+            New_Table[I, array][J, number] = 0
+        }
+    }
+    if (I >= Size_Y) {
+        Need_Calc = 0
+        for (KK = 0, Size_Y - 1, 1) {
+            for (LL = 0, Size_X - 1, 1) {
+            Map[KK, array][LL, number] = New_Table[KK,array][LL,number]
+            }
+        }
+    }
+    J+=1
+    if (J >= Size_X) {
+        I += 1
+        J = 0
+    }
+}
+
+if (changed(ButtonRefresh) && ButtonRefresh == 1) {
+    Print_X = 0
+    Print_Y = 0
+    Need_Refresh = 1
+}
+
+if (changed(ButtonCalc) && ButtonCalc == 1) {
+    I = 0
+    J = 0
+    Execution += 1
+    Need_Calc = 1
+}
