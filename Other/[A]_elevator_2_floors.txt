@@ -1,0 +1,45 @@
+@name [A] plant dick lamp covfefe
+@inputs BASE:entity MOVING_PLATE:entity 
+@inputs [B1 B2]:number
+@outputs 
+@persist FLOORS:table LEVEL
+@trigger 
+
+interval(30)
+
+if (first() | dupefinished()){
+    print("Adrien is the best dev i've ever seen")
+    
+    FLOORS[1,number] = 2.5
+    FLOORS[2,number] = 327.5
+    FLOORS["SPEED",number] = 0.01
+    FLOORS["CAN_GO",number] = 1
+    LEVEL = 0
+}
+
+if ((changed(B1) | changed(B2)) && FLOORS["CAN_GO",number] == 1){
+    if (B1 == 1) {
+        FLOORS["CAN_GO",number] = 0
+        FLOORS["GOING_TO",number] = 1
+        FLOORS["STARTING_FROM",vector] = MOVING_PLATE:pos()
+        LEVEL = 0
+    }
+    if (B2 == 1) {
+        FLOORS["CAN_GO",number] = 0
+        FLOORS["GOING_TO",number] = 2
+        FLOORS["STARTING_FROM",vector] = MOVING_PLATE:pos()
+        LEVEL = 0
+    }
+}
+
+if (FLOORS["CAN_GO",number] == 0){
+    LEVEL += FLOORS["SPEED",number]
+    local START = FLOORS["STARTING_FROM",vector]
+    local MID = (FLOORS["STARTING_FROM",vector] + BASE:toWorld(vec(0, 0, FLOORS[FLOORS["GOING_TO",number],number]))) / 2
+    local END = BASE:toWorld(vec(0, 0, FLOORS[FLOORS["GOING_TO",number],number]))
+    MOVING_PLATE:setPos(bezier(START, MID, END, LEVEL))
+    
+    if (LEVEL >= 1) {
+        FLOORS["CAN_GO",number] = 1
+    }
+}
